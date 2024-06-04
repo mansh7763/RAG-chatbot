@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "backend/app.py",
+            "use": "@vercel/python"
+        },
+        {
+            "src": "frontend/**/*",
+            "use": "@vercel/static-build",
+            "config": { "distDir": "frontend" }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/",
+            "dest": "frontend/index.html"
+        },
+        {
+            "src": "/upload",
+            "dest": "backend/app.py"
+        },
+        {
+            "src": "/query",
+            "dest": "backend/app.py"
+        }
+    ]
+}
