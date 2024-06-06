@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from model import get_embeddings, get_response, split_text_into_passages
+from model import get_embeddings, get_response, split_text_into_passages, split_text_into_chunks
 import os
 from sqlalchemy import create_engine
 from supabase import create_client, Client
@@ -15,9 +15,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app) 
-DATABASE_URL = "db connection url"
+DATABASE_URL = "postgresql+psycopg2://postgres.hjjjkgzdxwstwuqjspje:eDCsslfp0QmY0Ijk@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
 
 engine = create_engine(DATABASE_URL)
+
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 print(SUPABASE_KEY)
@@ -26,6 +27,7 @@ supabase_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/upload', methods=['POST'])
 def upload_pdf():
@@ -37,14 +39,49 @@ def upload_pdf():
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
 
+        # previous code:
         text = extract_text_from_pdf(file)
         logging.debug(f"Extracted text: {text[:500]}") 
 
-        data = {'embeddings': text}
+        chunks = split_text_into_chunks(text,50)
+        logging.debug(f"converting to passages: {chunks}")
+
+        embedding = get_embeddings(chunks)
+        logging.debug(f"getting the embeddings: {embedding}")
+
+        # Convert the tensor to a list
+        embedding_list = embedding.tolist()
+        data = {'content':text, 'embeddings': embedding_list}
         logging.debug(f"Data to be sent to Supabase: {data}")
 
+
+        # # new code by himanshu
+        # # Extract text from the PDF file
+        # text = extract_text_from_pdf(file)
+        # logging.debug(f"Extracted text: {text[:500]}") 
+
+        # # Split text into chunks
+        # chunks = split_text_into_chunks(text, 500)
+        # logging.debug(f"Converted to passages: {chunks}")
+
+        # # Get embeddings for each chunk
+        # embedding = get_embeddings(chunks)
+        # logging.debug(f"Getting the embeddings: {embedding}")
+
+        # # Convert the embeddings tensor to a list
+        # embedding_list = embedding.tolist()
+
+        # # Prepare data for insertion
+        # data = [
+        #     {'content': chunk, 'embeddings': embed} 
+        #     for chunk, embed in zip(chunks, embedding_list)
+        # ]
+        # logging.debug(f"Data to be sent to Supabase: {data}")
+
+        # Insert data into Supabase
         response = supabase_client.table('pdfs').insert(data).execute()
         logging.debug(f"Supabase response: {response}")
+
 
         if 'error' in response:  
             logging.error(f"Error response from Supabase: {response}")
@@ -57,8 +94,6 @@ def upload_pdf():
         return jsonify({'error': str(e)}), 500
 
 
-
-
 @app.route('/query', methods=['POST'])
 def query():
     try:
@@ -69,25 +104,24 @@ def query():
         logging.debug(f"Query text: {query_text}, PDF ID: {pdf_id}")
 
       
-        response = supabase_client.table('pdfs').select('embeddings').eq('id', pdf_id).execute()
-        logging.debug(f"Supabase response yes: {response}")
+        response = supabase_client.table('pdfs').select('embeddings', 'content').eq('id', pdf_id).execute()
+        # logging.debug(f"Supabase response yes: {response}")
 
-        if response.status_code == 200 and response.data:
-            pdf_content = response.data[0]['embeddings']
-            
+        if response.data:
+            pdf_content = response.data[0]['content']
           
-            passages = split_text_into_passages(pdf_content)
+            passages = split_text_into_chunks(pdf_content, 50)
             logging.debug(f"Passages: {passages[:5]}")
 
           
-            passage_embeddings = get_embeddings(passages)
-            logging.debug("Generated passage embeddings")
-
+            # passage_embeddings = get_embeddings(passages)
+            # logging.debug("Generated passage embeddings")
+            passage_embeddings = response.data[0]['embeddings']
           
             query_embeddings = get_embeddings(query_text)
             logging.debug("Generated query embeddings")
 
-            response_text = get_response(query_embeddings, passages, passage_embeddings)
+            response_text = get_response(query_embeddings,query_text, passages, passage_embeddings)
             logging.debug(f"Response text: {response_text}")
 
             return jsonify({'response': response_text})
