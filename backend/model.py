@@ -101,7 +101,7 @@ import openai
 from sentence_transformers import util
 
 # Set your OpenAI API key
-openai.api_key = 'sk-proj-vTOrRVi46LLlSxv2PlQTT3BlbkFJDtANSn2QCWJugE3wZGXS'
+openai.api_key = 'OpenAI API key'
 
 def get_response(query_embeddings,query_text, passages, passage_embeddings):
     """
