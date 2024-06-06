@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app) 
-DATABASE_URL = "postgresql+psycopg2://postgres.hjjjkgzdxwstwuqjspje:eDCsslfp0QmY0Ijk@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
+DATABASE_URL = "postgresurl"
 
 engine = create_engine(DATABASE_URL)
 
