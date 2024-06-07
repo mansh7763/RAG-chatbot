@@ -14,9 +14,8 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 DATABASE_URL = os.getenv('POSTGRES_URL')
-
 engine = create_engine(DATABASE_URL)
 
 SUPABASE_URL = os.getenv('SUPABASE_URL')
