@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app) 
-DATABASE_URL = "postgresql+psycopg2://postgres.hjjjkgzdxwstwuqjspje:eDCsslfp0QmY0Ijk@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
+DATABASE_URL = os.getenv('POSTGRES_URL')
 
 engine = create_engine(DATABASE_URL)
 
@@ -53,30 +53,6 @@ def upload_pdf():
         embedding_list = embedding.tolist()
         data = {'content':text, 'embeddings': embedding_list}
         logging.debug(f"Data to be sent to Supabase: {data}")
-
-
-        # # new code by himanshu
-        # # Extract text from the PDF file
-        # text = extract_text_from_pdf(file)
-        # logging.debug(f"Extracted text: {text[:500]}") 
-
-        # # Split text into chunks
-        # chunks = split_text_into_chunks(text, 500)
-        # logging.debug(f"Converted to passages: {chunks}")
-
-        # # Get embeddings for each chunk
-        # embedding = get_embeddings(chunks)
-        # logging.debug(f"Getting the embeddings: {embedding}")
-
-        # # Convert the embeddings tensor to a list
-        # embedding_list = embedding.tolist()
-
-        # # Prepare data for insertion
-        # data = [
-        #     {'content': chunk, 'embeddings': embed} 
-        #     for chunk, embed in zip(chunks, embedding_list)
-        # ]
-        # logging.debug(f"Data to be sent to Supabase: {data}")
 
         # Insert data into Supabase
         response = supabase_client.table('pdfs').insert(data).execute()
