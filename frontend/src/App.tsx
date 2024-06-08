@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UploadPDF from "../src/components/uploadPdf";
 import Chatbot from "../src/components/chatBot";
 const App = () => {
