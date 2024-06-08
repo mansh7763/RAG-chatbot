@@ -6,23 +6,23 @@
       "use": "@vercel/python"
     },
     {
-      "src": "frontend/**/*",
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "frontend" }
+      "config": { "distDir": "frontend/build" }
     }
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "frontend/index.html"
+      "src": "/api/upload",
+      "dest": "/backend/app.py"
     },
     {
-      "src": "/upload",
-      "dest": "backend/app.py"
+      "src": "/api/query",
+      "dest": "/backend/app.py"
     },
     {
-      "src": "/query",
-      "dest": "backend/app.py"
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
     }
   ]
 }
