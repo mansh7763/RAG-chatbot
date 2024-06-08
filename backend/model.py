@@ -4,6 +4,9 @@ import torch
 from sentence_transformers import util
 import logging
 
+# Load embedding model
+embed_model_name = "sentence-transformers/all-MiniLM-L6-v2"
+embed_model = SentenceTransformer(embed_model_name)
 
 model_name = "deepset/roberta-base-squad2"
 model = AutoModelForQuestionAnswering.from_pretrained(model_name)
